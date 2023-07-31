@@ -1,0 +1,434 @@
+Readme file QA_ server 
+=========================
+
+#Basic setup of environment in terminal
+conda create -n "demo_app_solutions_gds" python=3.9.12 anaconda
+
+conda activate "demo_app_solutions_gds"
+
+## Installing torch
+### cpu
+conda install pytorch=1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cpuonly -c pytorch
+### gpu
+Refer command from https://pytorch.org/get-started/locally/
+
+## Installing other libraries
+cd "root directory ('ixolerator')"
+
+pip install -e .
+
+pip install -r apps/requirements.txt
+
+pip install -r connectors/aws/requirements.txt
+
+pip install -r connectors/azure/requirements.txt
+
+pip install -r solutions/interfaces/group_discussion_summary/requirements.txt
+
+
+
+# Mount AWS/ AZURE Server
+
+## To mount aws server
+
+### windows system
+python -u connectors/aws/src/s3_mount_windows.py
+### linux system
+python -u connectors/aws/src/s3_mount_linux.py
+
+##Give 777 permission to the mount-point and reboot the instance.
+sudo chmod 777 s3_bucket 
+
+## To mount azure server
+
+### windows system
+python -u connectors/azure/src/adl_mount_windows.py
+### linux system
+python -u connectors/azure/src/adl_mount_linux.py
+
+
+
+# Run application
+
+
+### Recommended application run
+#### GDS using prompt model
+python -u apps/demo_app_solutions_gds/backend/server/src/gds_server.py
+
+#### GDS using hf model
+python -u apps/demo_app_solutions_gds/backend/server/src/gds_server.py summarizer_model_name='hf'
+
+### Available arguments
+python -u apps/demo_app_solutions_gds/backend/server/src/gds_server.py summarizer_model_name='hf' remote_data_server='aws'
+
+### Argument details
+
+remote_data_server[optional]: string argument which takes value as 'aws'(if the data/trained models are to be accessed from aws server) or as 'azure'(if the data/trained models are to be accessed from azure server). By default, assigns 'aws'.
+
+summarizer_model_name[optional]: string argument which takes value as 'hf'(if hugging face models are to be used for summary). By default, uses prompt model.
+
+
+
+# Endpoints Usage
+
+
+## Get Summary
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/tc1/sample_yt_fgd.txt","data_type":"txt"},"pre_processing_parameters":{"do_punctuation_restoration":0,"non_en_lang":0},"summary_parameters":{"do_pairwise_caller_respondent_summary":0}}' http://127.0.0.1:5000/get_summary
+
+### Argument details
+data_parameters: details of the input data must be passed in this argument. It can take a dictionary with two keys. They are:
+
+    data_type: string argument which takes the type of input data passed as its value. It can take either 'txt' or 'list'.
+
+    data: string or list argument which takes the data(data_type = 'list') directly as input or as path(data_type = 'txt').
+
+
+pre_processing_parameters[optional]: details of the pre-processing features required must be passed in this argument as a boolean. It can take a dictionary with two keys. They are:
+
+    do_punctuation_restoration[optional]: boolean argument which takes value as 0(if punctuation correction of input data is not required) or as 1(if punctuation correction of input data is required). By default, assigns 0.
+
+    non_en_lang[optional]: boolean argument which takes value as 0(if the input text language is english) or as 1(if the input text language is non-english). If set as 1, the input text will be translated to english. By default, assigns 0.
+
+
+company_brand_info_parameters[optional]: details of the focal/competitor company, brands and its aliases must be passed in this argument. It can take a dictionary with three keys. They are:
+
+    focal_company_brand_info[optional]: dictionary argument which takes focal company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    competitor_company_brand_info[optional]: dictionary argument which takes competitor company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    aliases[optional]: dictionary argument which takes the correct name of company/brand as the keys and the corresponding misspelled name as the keys' values(list).
+
+
+summary_parameters[optional]: details of the summary parameters required must be passed in this argument as a boolean. It can take a dictionary with one key. They are:
+
+    do_pairwise_caller_respondent_summary[optional]: boolean argument which takes value as 0(if pairwise_caller_respondent_summary is not required) or as 1(if pairwise_caller_respondent_summary is required). By default, assigns 0.
+
+
+
+## Shut down
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/shut_down
+
+
+## Suggestion to the User
+If an API call is aborted by the user in the middle of execution, the server may go into an unstable state. On receiving error from server, caller should retry for three to four times.
+
+
+
+DEMO_APPS_SOLUTIONS_VTI
+==============================
+
+#Basic setup of environment in terminal
+conda create -n "demo_app_soultion_vti" python=3.9.12 anaconda
+
+conda activate "demo_app_soultion_vti"
+
+## Installing torch
+### cpu
+conda install pytorch=1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cpuonly -c pytorch
+### gpu
+Refer command from https://pytorch.org/get-started/locally/
+
+## Installing other libraries
+cd "root directory ('ixolerator')"
+
+pip install -e .
+
+pip install -r apps/requirements.txt
+
+pip install -r connectors/aws/requirements.txt
+
+pip install -r connectors/azure/requirements.txt
+
+pip install -r meghnad/interfaces/speech/zero_shot_stt/requirements.txt
+
+pip install -r solutions/interfaces/text_to_insights/requirements.txt
+
+
+
+# Mount AWS/ AZURE Server
+
+
+## To mount aws server
+
+### windows system
+python -u connectors/aws/src/s3_mount_windows.py
+### linux system
+    python -u connectors/aws/src/s3_mount_linux.py
+    
+
+## To mount azure server
+
+### windows system
+python -u connectors/azure/src/adl_mount_windows.py
+### linux system
+python -u connectors/azure/src/adl_mount_linux.py
+
+
+
+# Run application
+
+
+### Recommended application run
+#### Number of speakers is known
+python -u apps/demo_app_solutions_vti/backend/server/src/vti_server.py is_num_speakers_known=1
+#### Number of speakers is unknown
+python -u apps/demo_app_solutions_vti/backend/server/src/vti_server.py --> failed
+
+### Available arguments
+python -u apps/demo_app_solutions_vti/backend/server/src/vti_server.py init_mode='vti' is_num_speakers_known=1 remote_data_server='aws' access_type='topics'
+
+### Argument details
+init_mode[optional]: string argument which takes value as 'stt'(if only transcribe end point is to be used) or as 'tti'(if all end points except transcribe end point are to be used) or as 'vti'(if all end points are to be used). By default, assigns 'vti'.
+
+is_num_speakers_known[optional]: boolean argument which takes value as 0(if number of speakers is not known) or as 1(if number of speakers is known). By default, assigns 0.
+
+remote_data_server[optional]: string argument which takes value as 'aws'(if the data/trained models are to be accessed from aws server) or as 'azure'(if the data/trained models are to be accessed from azure server). By default, assigns 'aws'.
+
+access_type[optional]: string argument which takes values as 'topics'(if the get_ideas end point is to be accessed) or as 'opinions'(if the get_opinions end point is to be accessed) or as 'info'(if the get_qa_raw_answers or get_qa_refined_answers or get_summary end point is to be accessed). By default, assigns 'topics'.
+
+
+
+# Endpoints Usage
+
+
+## Convert_audio Example [DEPRECATED]
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"source_file_path":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/tc1/voice_insights_final_convo.wav","destination_file_path":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/tc1/voice_insights_final_convo.mp3"}' http://127.0.0.1:5000/convert_audio
+
+### Argument details
+source_file_path: string argument which takes the path of the audio file to be converted(should point to the file)
+
+destination_file_path: string argument which takes the path to which the audio file will be converted(should point to the file)
+
+
+## Transcribe Example
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/tc1/voice_insights_final_convo.wav","number_of_speakers":2,"lang":"en"}' http://127.0.0.1:5000/transcribe
+
+### Available arguments
+curl -X POST -H "Content-Type: application/json" -d '{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/tc1/voice_insights_final_convo.wav","number_of_speakers":2,"minimum_speakers":2,"lang":"en","enable_pre_process":0,"keep_original_lang":0}' http://127.0.0.1:5000/transcribe
+
+### Argument details
+data: string argument which takes the path of the file to be transcribed(should point to the file)
+
+number_of_speakers[optional]: integer argument which takes the number of speakers in the audio file. This is to be specified if is_num_speakers_known is set as True(1) while model initiating.
+
+minimum_speakers[optional]: integer argument which takes the minimum number of speakers in the audio file.
+
+lang[optional]: string argument which takes the language code ('en', etc,.) as its value. By default, assigns None.
+
+enable_pre_process[optional]: boolean argument which takes value as 0(if audio pre_processing is not required to be done before transcribing) or as 1(if audio pre_processing is required to be done before transcribing). By default, assigns 0.
+
+keep_original_lang[optional]: boolean argument which takes value as 0(if audio is required to be translated to english) or as 1(if audio is required to be transcribed in the source language). By default, assigns 0.
+
+
+
+## Get Ideas Example
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/Intender_XUV300_ENQ23A000187.txt","data_type":"txt"}}' http://127.0.0.1:5000/get_ideas
+
+### Available arguments
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/tc3/stt_result.csv","data_type":"csv","input_text_column_name":"seq"},"company_name_parameters":{"focal_company_names":["honda"],"competitor_company_names":["hyundai","maruti"],"industry":"car"}}' http://127.0.0.1:5000/get_ideas
+
+### Argument details
+data_parameters: details of the input data must be passed in this argument. It can take a dictionary with three keys. They are:
+
+    data_type: string argument which takes the type of input data passed as its value. It can take either 'txt' or 'csv' if the data is a file path, 'str' or 'list' if the data is a direct input value.
+
+    data: string or list argument which either takes the file path(txt or csv - pointing to the file) or the data (str or list) directly as input.
+
+    input_text_column_name[optional]: string argument which takes the name of the text column that is to be considered as the input when the data_type is 'csv' and data is the csv file.
+
+
+company_name_parameters[optional]: details of the company names must be passed in this argument. It can take a dictionary with two keys. They are:
+
+    focal_company_names[optional]: list argument which takes the list of focal company names as input for which the brands need to be identified.
+
+    competitor_company_names[optional]: list argument which takes the list of competitor company names as input for which the brands need to be identified.
+
+    industry[optional]: industry associated with the input text.
+
+
+
+## Get Opinions Example
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/Intender_XUV300_ENQ23A000187.txt","data_type":"txt","mode":"conversation"},"pre_processing_parameters":{"do_punctuation_restoration":0,"do_spl_proc_ref":0,"non_en_lang":0},"company_brand_info_parameters":{"focal_company_brand_info":{"Mahindra":["XUV 300"]},"competitor_company_brand_info":{"Mahindra":["Bolero","Verito"],"Skoda":["Fabia"]},"aliases":{"XUV":["xcv","xcb","xev","xt-v","xevw"],"XUV 300":["xuv300","xuv-300","xuv:300","3oo"]}},"opinion_parameters":{"product_features_info":["Dashboard / Infotainment system / Navigation / Touchscreen","Music system / Sound system / Speaker / Stereo","Electronic / Power window / Charging point"],"configure_get_opinions_result_by":"brand","do_opinion_mining":1}}' http://127.0.0.1:5000/get_opinions
+
+### Available arguments
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"I don'\''t see a future with Humana","data_type":"str","mode":"paragraph"},"pre_processing_parameters":{"do_punctuation_restoration":0,"do_spl_proc_ref":0,"non_en_lang":0},"opinion_parameters":{"product_features_info":["I am worried about inflation","I have low financial confidence for my future","I am worried about economy","I don'\''t have enough money or savings","401k","I require guidance from financial advisors","I am worried about politics and Governments","I do 401k savings","401","My spouse is facing financial problems","I did not realize the need to do financial planning","My children have financial problems","I have not done financial planning before","I am worried about recession","I have made good financial planning and have assets for retirement","I have a bad employer which pays low wage or poor wage growth","I have health obligations for my family","I have education obligations for my family","I have high financial confidence for my future and I know what to do","I have too much debt","I am worried about job security and layoff","I am not worried about economy as it is only for short term","I have a good employer","I am not worried about economy as I feel fine and it will work out"]}}' http://127.0.0.1:5000/get_opinions
+
+### Argument details
+data_parameters: details of the input data must be passed in this argument. It can take a dictionary with five keys. They are:
+
+    data_type: string argument which takes the type of input data passed as its value. It can take either 'txt' or 'csv' or 'str' or 'list'.
+
+    data: string or list argument which takes the data(data_type = 'str' or 'list') directly as input or as path(data_type = 'txt' or 'csv').
+
+    mode[optional]: string argument which takes either 'paragraph'(for non-conversation data) or 'conversation'(for interview data) as its value. By default, assigns 'paragraph'.
+
+    input_text_column_name[optional]: string argument which takes the name of the text column that is to be considered as the input when the data_type is 'csv' and data_path is a csv file.
+
+    input_speaker_column_name[optional]: string argument which takes the name of the speaker column that is to be considered as the speaker tag when the data_type is 'csv', data_path is a csv file and mode is 'conversation'.
+
+
+pre_processing_parameters[optional]: details of the pre-processing features required must be passed in this argument as a boolean. It can take a dictionary with three keys. They are:
+
+    do_punctuation_restoration[optional]: boolean argument which takes value as 0(if punctuation correction of input data is not required) or as 1(if punctuation correction of input data is required). By default, assigns 0.
+
+    do_spl_proc_ref[optional]: boolean argument which takes value as 0(if special reference processing of input data is not required) or as 1(if special reference processing of input data is required). By default, assigns 0.
+
+    non_en_lang[optional]: boolean argument which takes value as 0(if the input text language is english) or as 1(if the input text language is non-english). If set as 1, the input text will be translated to english. By default, assigns 0.
+
+
+company_brand_info_parameters[optional]: details of the focal/competitor company, brands and its aliases must be passed in this argument. It can take a dictionary with three keys. They are:
+
+    focal_company_brand_info[optional]: dictionary argument which takes focal company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    competitor_company_brand_info[optional]: dictionary argument which takes competitor company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    aliases[optional]: dictionary argument which takes the correct name of company/brand as the keys and the corresponding misspelled name as the keys' values(list).
+
+
+opinion_parameters: details of the product features (or) aspects, industry, configuration of opinion result and boolean check for opinion mining must be passed in this argument. It can take a dictionary with five keys. They are:
+
+    product_features_info: list argument which takes the list of product features as its value.
+    
+    (or)
+
+    product_features_aspects_info: dictionary argument which takes the product features as the keys and its corresponding aspects as the values(list).
+
+    industry[optional]: string argument which takes the industry of the input data as its value.
+
+    configure_get_opinions_result_by[optional]: string argument which takes value as 'company'(if the get_opinions result is needed to be represented using the company names) or as 'brand'(if the get_opinions result is needed to be represented using the brand names). By default, assigns 'company'.
+
+    do_opinion_mining[optional]: boolean argument which takes value as 0(if opinion_mining is not required) or as 1(if opinion_mining is required). By default, assigns 1.
+
+
+
+## Get QA Raw Answers Example
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/Intender_XUV300_ENQ23A000187.txt","data_type":"txt","mode":"conversation"},"pre_processing_parameters":{"do_punctuation_restoration":0,"non_en_lang":0},"company_brand_info_parameters":{"focal_company_brand_info":{"Mahindra":["XUV 300"]},"competitor_company_brand_info":{"Mahindra":["Bolero","Verito"],"Skoda":["Fabia"]},"aliases":{"XUV":["xcv","xcb","xev","xt-v","xevw"],"XUV 300":["xuv300","xuv-300","xuv:300","3oo"]}},"question_db_parameters":{"question_db":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/question_db_intender_v11.csv","question_db_type":"csv","get_verbatim_answers":1}}' http://127.0.0.1:5000/get_qa_raw_answers
+
+### Available arguments
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/Intender_XUV300_ENQ23A000187.txt","data_type":"txt","mode":"conversation"},"pre_processing_parameters":{"do_punctuation_restoration":0,"non_en_lang":0},"company_brand_info_parameters":{"focal_company_brand_info":{"Mahindra":["XUV 300"]},"competitor_company_brand_info":{"Mahindra":["Bolero","Verito"],"Skoda":["Fabia"]},"aliases":{"XUV":["xcv","xcb","xev","xt-v","xevw"],"XUV 300":["xuv300","xuv-300","xuv:300","3oo"]}},"question_db_parameters":{"question_db":[{"Question_No.":1,"Questions":"Which model is the respondent most seriously considering buying?"}],"question_db_type":"json","get_verbatim_answers":0}}' http://127.0.0.1:5000/get_qa_raw_answers
+
+### Argument details
+data_parameters: details of the input data must be passed in this argument. It can take a dictionary with five keys. They are:
+
+    data_type: string argument which takes the type of input data passed as its value. It can take either 'txt' or 'csv' or 'str' or 'list'.
+
+    data: string or list argument which takes the data(data_type = 'str' or 'list') directly as input or as path(data_type = 'txt' or 'csv').
+
+    mode[optional]: string argument which takes either 'paragraph'(for non-conversation data) or 'conversation'(for interview data) as its value. By default, assigns 'paragraph'.
+
+    input_text_column_name[optional]: string argument which takes the name of the text column that is to be considered as the input when the data_type is 'csv' and data_path is a csv file.
+
+    input_speaker_column_name[optional]: string argument which takes the name of the speaker column that is to be considered as the speaker tag when the data_type is 'csv', data_path is a csv file and mode is 'conversation'.
+
+
+pre_processing_parameters[optional]: details of the pre-processing features required must be passed in this argument as a boolean. It can take a dictionary with two keys. They are:
+
+    do_punctuation_restoration[optional]: boolean argument which takes value as 0(if punctuation correction of input data is not required) or as 1(if punctuation correction of input data is required). By default, assigns 0.
+
+    non_en_lang[optional]: boolean argument which takes value as 0(if the input text language is english) or as 1(if the input text language is non-english). If set as 1, the input text will be translated to english. By default, assigns 0.
+
+
+company_brand_info_parameters[optional]: details of the focal/competitor company, brands and its aliases must be passed in this argument. It can take a dictionary with three keys. They are:
+
+    focal_company_brand_info[optional]: dictionary argument which takes focal company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    competitor_company_brand_info[optional]: dictionary argument which takes competitor company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    aliases[optional]: dictionary argument which takes the correct name of company/brand as the keys and the corresponding misspelled name as the keys' values(list).
+
+
+question_db_parameters: details of the question_db and a boolean check for verbatim answers must be passed in this argument. It can take a dictionary with three keys. They are:
+    
+    question_db_type: string argument which takes value as either 'csv' or 'txt' or 'json'.
+    
+    question_db: string argument which takes either the file path(if question_db_type is 'csv' or 'txt') or the question(if question_db_type is 'json') directly as its value.
+    
+    get_verbatim_answers[optional]: boolean argument which takes value as 0(if verbatim_answers is not required) or as 1(if verbatim_answers is required). By default, assigns 1.
+
+
+
+## Get QA Refined Answers
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"company_brand_info_parameters":{"focal_company_brand_info":{"Mahindra":["XUV 300"]},"competitor_company_brand_info":{"Mahindra":["Bolero","Verito"],"Skoda":["Fabia"]}},"question_db_parameters":{"question_db":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/question_db_intender_v11.csv","question_db_type":"csv"},"raw_answer_parameters":{"raw_answer_db_type":"csv","raw_answer_db":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/Raw_Answers/Intender_XUV300_ENQ23A000187.csv","input_raw_answer_column_name":"Raw_Answers"}}' http://127.0.0.1:5000/get_qa_refined_answers
+
+### Argument details
+company_brand_info_parameters[optional]: details of the focal/competitor company and brands must be passed in this argument. It can take a dictionary with two keys. They are:
+
+    focal_company_brand_info[optional]: dictionary argument which takes focal company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    competitor_company_brand_info[optional]: dictionary argument which takes competitor company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+
+question_db_parameters[optional]: details of the question_db must be passed in this argument. It can take a dictionary with two keys. They are:
+    
+    question_db_type[optional]: string argument which takes value as either 'csv' or 'txt' or 'json'.
+    
+    question_db[optional]: string argument which takes either the file path(if question_db_type is 'csv' or 'txt') or the question(if question_db_type is 'json') directly as its value.
+
+
+raw_answer_parameters: details of the raw answers must be passed in this argument. It can take a dictionary with three keys. They are:
+    
+    raw_answer_db_type: string argument which takes value as either 'csv' or 'txt' or 'json'.
+    
+    raw_answer_db: string argument which takes either the file path(if raw_answer_db_type is 'csv' or 'txt') or the raw answer(if raw_answer_db_type is 'json') directly as its value.
+
+    input_raw_answer_column_name[optional]: string argument which takes the name of the column that is to be considered as the raw answer input. By default, assigns 'Raw_Answers'. 
+
+
+
+## Get Summary
+
+### Recommended run
+curl -X POST -H "Content-Type: application/json" -d '{"data_parameters":{"data":"/home/deeplearningcv/s3_bucket/TextToInsights/testcases/mahindra/Intender_XUV300_ENQ23A000187.txt","data_type":"txt","mode":"conversation"},"pre_processing_parameters":{"do_punctuation_restoration":0,"non_en_lang":0},"company_brand_info_parameters":{"focal_company_brand_info":{"Mahindra":["XUV 300"]},"competitor_company_brand_info":{"Mahindra":["Bolero","Verito"],"Skoda":["Fabia"]},"aliases":{"XUV":["xcv","xcb","xev","xt-v","xevw"],"XUV 300":["xuv300","xuv-300","xuv:300","3oo"]}}}' http://127.0.0.1:5000/get_summary
+
+### Argument details
+data_parameters: details of the input data must be passed in this argument. It can take a dictionary with five keys. They are:
+
+    data_type: string argument which takes the type of input data passed as its value. It can take either 'txt' or 'csv' or 'str' or 'list'.
+
+    data: string or list argument which takes the data(data_type = 'str' or 'list') directly as input or as path(data_type = 'txt' or 'csv').
+
+    mode[optional]: string argument which takes either 'paragraph'(for non-conversation data) or 'conversation'(for interview data) as its value. By default, assigns 'paragraph'.
+
+    input_text_column_name[optional]: string argument which takes the name of the text column that is to be considered as the input when the data_type is 'csv' and data_path is a csv file.
+
+    input_speaker_column_name[optional]: string argument which takes the name of the speaker column that is to be considered as the speaker tag when the data_type is 'csv', data_path is a csv file and mode is 'conversation'.
+
+
+pre_processing_parameters[optional]: details of the pre-processing features required must be passed in this argument as a boolean. It can take a dictionary with two keys. They are:
+
+    do_punctuation_restoration[optional]: boolean argument which takes value as 0(if punctuation correction of input data is not required) or as 1(if punctuation correction of input data is required). By default, assigns 0.
+
+    non_en_lang[optional]: boolean argument which takes value as 0(if the input text language is english) or as 1(if the input text language is non-english). If set as 1, the input text will be translated to english. By default, assigns 0.
+
+
+company_brand_info_parameters[optional]: details of the focal/competitor company, brands and its aliases must be passed in this argument. It can take a dictionary with three keys. They are:
+
+    focal_company_brand_info[optional]: dictionary argument which takes focal company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    competitor_company_brand_info[optional]: dictionary argument which takes competitor company names as the keys of dictionary and it's brands as the corresponding values(list) of the keys.
+
+    aliases[optional]: dictionary argument which takes the correct name of company/brand as the keys and the corresponding misspelled name as the keys' values(list).
+
+
+
+## Shut down
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/shut_down
+
+## Suggestion to the User
+If an API call is aborted by the user in the middle of execution, the server may go into an unstable state. On receiving error from server,
+ caller should retry for three to four times.
+
